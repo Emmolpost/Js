@@ -208,23 +208,15 @@ random9 = random.choice(['M2006C3MI','22031116AI','220333QPG','POCO F2 Pro','M20
 
 random10 = random.choice(['WOW64'])
 
-demias1 = f'Mozilla/5.0 (Linux; Android {
-    a
-}; {
-    random1
-} Build/ {
-    b
-}. {
-    c
-}.0 {
-    d
-}; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/ {
-    e
-}.0. {
-    f
-}. {
-    g
-} Mobile Safari/537.36'
+a = "Linux; Android"
+b = "Build"
+c = "1"
+d = "(versi Android Anda)"
+e = "versi Chrome Anda"
+f = "(versi Chrome Anda)"
+g = "(versi Mobile Safari Anda)"
+
+demias1 = f'Mozilla/5.0 ({a} {d}; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/{e}.{f}.{g} Mobile Safari/537.36'
 
 demias2 = f'Mozilla/5.0 (Linux; Android {
     a
